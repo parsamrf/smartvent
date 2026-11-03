@@ -23,6 +23,7 @@ Thumbs.db
 
 # Course handout
 *.pdf
+!docs/REPORT.pdf
 
 # Local planning notes
 VIDEO_PLAN.md
