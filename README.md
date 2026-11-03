@@ -5,6 +5,7 @@ SmartVent is an IoT smart-ventilation system. Two **nRF52840** sensor nodes each
 | | |
 |---|---|
 | Website | https://3-17-254-71.sslip.io |
+| Source code | https://github.com/parsamrf/smartvent |
 | Pitch video | _TODO_ |
 | Demo video | _TODO_ |
 | Test account | `demo@smartvent.test` / `Vent-yemsg851f07` (owns the two live nodes, Bedroom and Kitchen, with recent data) |
