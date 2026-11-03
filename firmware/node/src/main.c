@@ -7,10 +7,10 @@
  * the gateway (and therefore the dashboard) sees the new reported state within
  * a second instead of waiting for the next period.
  *
- * LEDs: led0 shows the fan output (stand-in for a fan relay / motor driver).
- * On boards that also define led1 / led2 (e.g. the nRF52840 DK), led1 is ON in
- * MANUAL mode and led2 is ON while the gateway is connected. The nice!nano has
- * only led0.
+ * LEDs: led0 (onboard) and the external fan LED show the fan output (stand-in
+ * for a fan relay / motor driver). led1 (yellow) is ON in MANUAL mode and led2
+ * (red) is ON while the gateway is connected. The external LEDs are wired in
+ * the board overlay.
  */
 #include <stdio.h>
 #include <stdlib.h>
