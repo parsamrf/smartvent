@@ -6,8 +6,7 @@ SmartVent is an IoT smart-ventilation system. Two **nRF52840** sensor nodes each
 |---|---|
 | Website | https://3-17-254-71.sslip.io |
 | Source code | https://github.com/parsamrf/smartvent |
-| Pitch video | _TODO_ |
-| Demo video | _TODO_ |
+| Demo video (full project) | _TODO: add link after recording_ |
 | Test account | `demo@smartvent.test` / `Vent-yemsg851f07` (owns the two live nodes, Bedroom and Kitchen, with recent data) |
 
 ## Architecture
@@ -146,6 +145,9 @@ The gateway connects to both nodes automatically. Serial command `s` prints its 
 
 ## Team and contributions
 **Parsa Mirfasihi** and **Afsah Khan** (ECE 413/513, Fall 2026, University of Arizona). The two team members shared all tasks across the whole system: hardware bring-up and wiring, node and gateway firmware, the AWS backend, the web app, testing, and the demo and documentation.
+
+- Parsa Mirfasihi: [website](https://parsamirfasihi.com), [GitHub](https://github.com/parsamrf), [LinkedIn](https://www.linkedin.com/in/parsa-mirfasihi/)
+- Afsah Khan: [LinkedIn](https://www.linkedin.com/in/afsah-sharaf-khan-029384311/)
 
 ## Lessons learned / Challenges
 - **Wi-Fi band:** the ESP32-S3 only joins 2.4 GHz networks. An iPhone hotspot needs "Maximize Compatibility" turned on.
