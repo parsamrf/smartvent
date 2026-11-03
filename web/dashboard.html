@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dashboard · SmartVent</title>
+  <script>try { var t = localStorage.getItem("sv.theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-auth="required" data-bg="calm">
+  <main>
+    <div class="page-head">
+      <div>
+        <span class="eyebrow">Control center</span>
+        <h1>Dashboard</h1>
+        <p class="muted" style="margin:4px 0 0">Live readings and controls for every node on your account.</p>
+      </div>
+      <div class="row">
+        <span class="live" id="live"><span class="live-ind" aria-hidden="true"><svg class="live-ring" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" pathLength="100"/></svg><i class="dot"></i></span><span>Connecting…</span></span>
+        <button id="open-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>Add node</button>
+      </div>
+    </div>
+
+    <section class="stats" id="stats" aria-label="Summary">
+      <div class="card stat"><span class="s-ico" data-ico="node" aria-hidden="true"></span><div><div class="k">Nodes</div><div class="v"><span id="st-nodes">–</span></div></div></div>
+      <div class="card stat"><span class="s-ico" data-ico="signal" aria-hidden="true"></span><div><div class="k">Online</div><div class="v"><span id="st-online">–</span><small id="st-online-of"></small></div></div></div>
+      <div class="card stat"><span class="s-ico" data-ico="fan" aria-hidden="true"></span><div><div class="k">Fans running</div><div class="v"><span id="st-fans">–</span></div></div></div>
+      <div class="card stat"><span class="s-ico" data-ico="thermo" aria-hidden="true"></span><div><div class="k">Avg temperature</div><div class="v"><span id="st-temp">–</span><small id="st-temp-u"></small></div></div></div>
+    </section>
+
+    <div id="global-msg" class="alert" role="status" style="margin-bottom:16px"></div>
+
+    <section id="devices" class="devices" aria-live="polite" aria-busy="true">
+      <div class="card sk-card" aria-hidden="true">
+        <div class="sk-head"><div class="sk" style="width:52px;height:52px;border-radius:16px"></div><div style="flex:1;display:grid;gap:8px"><div class="sk" style="height:18px;width:40%"></div><div class="sk" style="height:12px;width:28%"></div></div><div class="sk" style="width:70px;height:24px;border-radius:99px"></div></div>
+        <div class="sk-body"><div class="sk-row"><div class="sk" style="height:130px"></div><div class="sk" style="height:130px"></div></div><div class="sk" style="height:44px"></div><div class="sk" style="height:240px"></div></div>
+      </div>
+      <div class="card sk-card" aria-hidden="true">
+        <div class="sk-head"><div class="sk" style="width:52px;height:52px;border-radius:16px"></div><div style="flex:1;display:grid;gap:8px"><div class="sk" style="height:18px;width:40%"></div><div class="sk" style="height:12px;width:28%"></div></div><div class="sk" style="width:70px;height:24px;border-radius:99px"></div></div>
+        <div class="sk-body"><div class="sk-row"><div class="sk" style="height:130px"></div><div class="sk" style="height:130px"></div></div><div class="sk" style="height:44px"></div><div class="sk" style="height:240px"></div></div>
+      </div>
+    </section>
+
+    <section id="empty" class="card empty" hidden aria-labelledby="empty-title">
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true">
+        <rect x="20" y="30" width="60" height="40" rx="8"/><circle cx="50" cy="50" r="9"/><path d="M50 18v12M36 22l4 8M64 22l-4 8"/></svg>
+      <h2 id="empty-title">No nodes yet</h2>
+      <p class="muted">Add your first sensor node to see live readings and control its fan.</p>
+      <ol class="empty-steps">
+        <li><b>Power the node</b><span>Plug a SmartVent node into USB. Its red LED lights once the gateway connects.</span></li>
+        <li><b>Find its device ID</b><span>The ID, like <span class="mono">vent-1a2b3c4d</span>, is printed on the serial console at boot.</span></li>
+        <li><b>Add it here</b><span>Give it a room name and it appears with live readings within seconds.</span></li>
+      </ol>
+      <p class="row" style="justify-content:center;margin:18px 0 0"><button id="empty-add">+ Add node</button><a class="btn secondary" id="empty-demo" href="dashboard.html?demo">Try the demo</a></p>
+    </section>
+  </main>
+
+  <dialog id="add-dialog" aria-labelledby="add-title">
+    <form id="add-form" method="dialog" class="stack">
+      <h2 id="add-title">Add a sensor node</h2>
+      <div>
+        <label for="add-id">Device ID</label>
+        <input id="add-id" placeholder="vent-1a2b3c4d" required pattern="vent-[0-9a-fA-F]{8}" autocomplete="off" spellcheck="false">
+        <p class="field-hint">Looks like <span class="mono">vent-1a2b3c4d</span>. It is printed on the node's serial console at boot.</p>
+      </div>
+      <div>
+        <label for="add-name">Name (optional)</label>
+        <input id="add-name" placeholder="Kitchen" maxlength="40" autocomplete="off">
+      </div>
+      <div id="add-msg" class="alert" role="alert"></div>
+      <div class="actions">
+        <button type="button" class="secondary" id="add-cancel">Cancel</button>
+        <button type="submit">Add node</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/api.js"></script>
+  <script>if (location.search.includes("demo")) document.write('<script src="js/demo-api.js"><\/script>');</script>
+  <script src="js/chart.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

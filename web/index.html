@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>SmartVent · Smart Ventilation</title>
+  <meta name="description" content="SmartVent: an IoT ventilation system with BLE sensor nodes, an ESP32-S3 gateway, AWS IoT Core and a live web dashboard. ECE 413/513 project, University of Arizona.">
+  <script>try { var t = localStorage.getItem("sv.theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main>
+    <!-- ============================================================ hero -->
+    <section class="hero">
+      <div>
+        <span class="eyebrow"><i></i>ECE 413/513 IoT project · University of Arizona</span>
+        <h1>Ventilation that <em>runs itself.</em></h1>
+        <p class="lead">
+          SmartVent nodes watch the temperature and humidity in every room and switch a fan on the moment
+          either one crosses a limit you set. Check on every room and override any fan from your phone.
+        </p>
+        <p class="row" style="margin-top:22px">
+          <a class="btn" id="cta-main" href="register.html"><span>Create an account</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn secondary" href="dashboard.html?demo">See a demo dashboard</a>
+        </p>
+        <div class="hero-stats" aria-label="At a glance">
+          <div><b data-count="2">2</b><span>sensor nodes</span></div>
+          <div><b><span data-count="5">5</span> s</b><span>sampling interval</span></div>
+          <div><b data-count="3">3</b><span>stage command check</span></div>
+          <div><b><span data-count="30">30</span> min</b><span>offline buffer</span></div>
+        </div>
+        <div class="chips" aria-label="Technology">
+          <span class="chip">nRF52840 · BLE</span><span class="chip">ESP32-S3 gateway</span>
+          <span class="chip">AWS IoT Core · MQTT/TLS</span><span class="chip">Lambda · DynamoDB</span>
+        </div>
+      </div>
+
+      <!-- Interactive control-logic simulator (same rule the nodes run) -->
+      <div class="hero-card" id="sim" role="region" aria-label="Control logic simulator">
+        <div class="row">
+          <div><strong>Try the control logic</strong><div class="muted small">The same rule each node runs</div></div><span class="spacer"></span>
+          <div class="seg" role="group" aria-label="Mode">
+            <button type="button" data-mode="auto" class="on" aria-pressed="true">Auto</button>
+            <button type="button" data-mode="manual" aria-pressed="false">Manual</button>
+          </div>
+        </div>
+        <div class="sim" style="margin-top:16px">
+          <div class="sim-controls">
+            <div><label for="sim-t">Temperature <span class="val" id="sim-tv"></span></label>
+              <input type="range" class="temp" id="sim-t" min="15" max="40" step="0.5" value="24">
+              <div class="band" id="band-t" aria-hidden="true"><span class="zone hyst"></span><span class="zone over"></span><span class="cur"></span></div></div>
+            <div><label for="sim-h">Humidity <span class="val" id="sim-hv"></span></label>
+              <input type="range" class="hum" id="sim-h" min="30" max="90" step="1" value="50">
+              <div class="band" id="band-h" aria-hidden="true"><span class="zone hyst"></span><span class="zone over"></span><span class="cur"></span></div></div>
+            <div class="band-legend" aria-hidden="true"><span><i style="background:color-mix(in srgb, var(--hot) 40%, transparent)"></i>turns on</span><span><i style="background:repeating-linear-gradient(135deg, color-mix(in srgb, var(--warn) 45%, transparent) 0 3px, transparent 3px 6px)"></i>keeps state</span></div>
+            <p class="field-hint">Fan turns on at <strong>27 °C</strong> or <strong>60 %</strong> and off again below 26.5 °C and 57 %.</p>
+          </div>
+          <div class="sim-out">
+            <div id="sim-fan"></div>
+            <div class="state-line" id="sim-state" role="status">Fan off</div>
+            <div class="why" id="sim-why"></div>
+            <button type="button" class="secondary" id="sim-toggle" hidden>Toggle fan</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ live status strip -->
+    <section class="status-strip card reveal" id="status" aria-labelledby="status-title">
+      <div class="ss-head">
+        <h2 id="status-title"><span class="ss-beat" aria-hidden="true"></span>System status</h2>
+        <span class="badge">Simulated preview</span>
+        <span class="spacer"></span>
+        <span class="ss-meta muted small">Next reading in <b id="ss-next">5</b> s · preview running <b id="ss-up" class="mono">0d 00:00:00</b></span>
+      </div>
+      <div class="ss-bar" aria-hidden="true"><i id="ss-bar"></i></div>
+      <div class="ss-grid">
+        <div class="ss-tile" data-tile="a">
+          <div class="ss-k"><span class="ss-dot"></span>Node A · Bedroom</div>
+          <div class="ss-v"><span data-v="t">–</span><small> °C</small><span class="ss-sep"></span><span data-v="h">–</span><small> %</small></div>
+          <svg class="ss-spark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"><path data-v="spark"/></svg>
+          <div class="ss-sub" data-v="fan">Fan off · Auto</div>
+        </div>
+        <div class="ss-tile" data-tile="b">
+          <div class="ss-k"><span class="ss-dot"></span>Node B · Kitchen</div>
+          <div class="ss-v"><span data-v="t">–</span><small> °C</small><span class="ss-sep"></span><span data-v="h">–</span><small> %</small></div>
+          <svg class="ss-spark" viewBox="0 0 120 26" preserveAspectRatio="none" aria-hidden="true"><path data-v="spark"/></svg>
+          <div class="ss-sub" data-v="fan">Fan off · Auto</div>
+        </div>
+        <div class="ss-tile" data-tile="gw">
+          <div class="ss-k"><span class="ss-dot"></span>ESP32-S3 gateway</div>
+          <div class="ss-v"><span data-v="links">2</span><small> / 2 BLE links</small></div>
+          <div class="ss-sub">RSSI <b data-v="rssi" class="mono">–</b> dBm</div>
+          <div class="ss-sub">Buffer <b data-v="buf" class="mono">0</b> / 720 · <span data-v="net">cloud link up</span></div>
+        </div>
+        <div class="ss-tile" data-tile="cloud">
+          <div class="ss-k"><span class="ss-dot"></span>AWS IoT Core</div>
+          <div class="ss-v"><span data-v="msgs">0</span><small> messages</small></div>
+          <div class="ss-sub">Round trip <b data-v="rtt" class="mono">–</b> ms</div>
+          <div class="ss-sub">Backfilled <b data-v="bf" class="mono">0</b> readings</div>
+        </div>
+      </div>
+      <p class="ss-note muted small">Numbers here are simulated in your browser to show what the system reports. Turn the network off in <a href="#offline">offline recovery</a> below and watch the gateway buffer fill.</p>
+    </section>
+
+    <!-- ============================================================ features -->
+    <section>
+      <div class="section-title reveal"><span class="eyebrow">Features</span><h2>What it does</h2>
+        <p>Two sensor nodes, one gateway and a cloud backend, working together so nobody has to touch a switch.</p></div>
+      <div class="features">
+        <div class="card feature lift reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"/></svg></div>
+          <h3>Automatic control</h3><p>Each node measures temperature and humidity every 5 seconds and runs its own fan, with hysteresis so it never flickers, even with no connection.</p></div>
+        <div class="card feature lift reveal" style="--d:.06s"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <h3>Manual override</h3><p>Take over any fan from the dashboard, change thresholds, or hand control back to Auto. You see the node's own reply, not just a promise.</p></div>
+        <div class="card feature lift reveal" style="--d:.12s"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01"/></svg></div>
+          <h3>Survives outages</h3><p>If the internet drops, the gateway keeps collecting readings from both nodes and uploads them with their original timestamps when it comes back.</p></div>
+        <div class="card feature lift reveal"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/></svg></div>
+          <h3>Secure by design</h3><p>HTTPS everywhere, mutual-TLS from the gateway to AWS, and a login check on every action. You can only see and control your own nodes.</p></div>
+        <div class="card feature lift reveal" style="--d:.06s"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="m7 15 4-5 3 3 5-7"/></svg></div>
+          <h3>Live history</h3><p>Gauges, charts from 15 minutes to 24 hours, and a record of every reading, including the ones recovered after an outage.</p></div>
+        <div class="card feature lift reveal" style="--d:.12s"><div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+          <h3>Ask your devices</h3><p>A read-only device assistant answers questions like "which room is warmest?" using your real readings, and says so when it doesn't know.</p></div>
+      </div>
+    </section>
+
+    <!-- ============================================================ hardware -->
+    <section>
+      <div class="section-title reveal"><span class="eyebrow">Hardware</span><h2>Inside the hardware</h2>
+        <p>Three layers: a small sensor node in each room, one gateway that bridges Bluetooth to the internet, and a serverless backend in AWS.</p></div>
+      <div class="hw-grid">
+        <article class="card hw lift reveal">
+          <div class="hw-art" aria-hidden="true">
+            <svg viewBox="0 0 220 140">
+              <g class="hw-waves" transform="translate(92 22)"><path d="M0 -8a10 10 0 0 1 10 10"/><path d="M0 -16a18 18 0 0 1 18 18"/><path d="M0 -24a26 26 0 0 1 26 26"/></g>
+              <rect class="metal" x="48" y="12" width="20" height="11" rx="3"/>
+              <rect class="pcb" x="30" y="20" width="56" height="106" rx="6"/>
+              <g class="pads"><circle cx="37" cy="32" r="2.3"/><circle cx="37" cy="40" r="2.3"/><circle cx="37" cy="48" r="2.3"/><circle cx="37" cy="56" r="2.3"/><circle cx="37" cy="64" r="2.3"/><circle cx="37" cy="72" r="2.3"/><circle cx="37" cy="80" r="2.3"/><circle cx="37" cy="88" r="2.3"/><circle cx="37" cy="96" r="2.3"/><circle cx="37" cy="104" r="2.3"/><circle cx="37" cy="112" r="2.3"/><circle cx="37" cy="120" r="2.3"/>
+                <circle cx="79" cy="32" r="2.3"/><circle cx="79" cy="40" r="2.3"/><circle cx="79" cy="48" r="2.3"/><circle cx="79" cy="56" r="2.3"/><circle cx="79" cy="64" r="2.3"/><circle cx="79" cy="72" r="2.3"/><circle cx="79" cy="80" r="2.3"/><circle cx="79" cy="88" r="2.3"/><circle cx="79" cy="96" r="2.3"/><circle cx="79" cy="104" r="2.3"/><circle cx="79" cy="112" r="2.3"/><circle cx="79" cy="120" r="2.3"/></g>
+              <rect class="chip" x="45" y="58" width="26" height="26" rx="3"/><text class="chip-t" x="58" y="74" text-anchor="middle">nRF</text>
+              <path class="wire w1" d="M79 40 C110 40 112 46 140 46"/><path class="wire w2" d="M79 48 C110 48 112 54 140 54"/><path class="wire w3" d="M79 56 C110 56 112 62 140 62"/><path class="wire w4" d="M79 64 C110 64 112 70 140 70"/>
+              <rect class="pcb2" x="140" y="36" width="58" height="44" rx="5"/>
+              <rect class="chip" x="162" y="49" width="17" height="17" rx="2"/><circle class="sense" cx="170.5" cy="57.5" r="3"/>
+              <text class="lbl" x="169" y="92" text-anchor="middle">SHT31 · I²C</text>
+              <g class="leds"><circle class="led g" cx="150" cy="114" r="5"/><circle class="led y" cx="169" cy="114" r="5"/><circle class="led r" cx="188" cy="114" r="5"/></g>
+              <text class="lbl" x="169" y="134" text-anchor="middle">fan · manual · link</text>
+            </svg>
+          </div>
+          <span class="hw-k">× 2 · one per room</span>
+          <h3>Sensor node</h3>
+          <p>A nice!nano board (Nordic nRF52840) reads a Sensirion SHT31 over I²C every 5 seconds, runs the auto rule locally and drives three status LEDs.</p>
+          <ul class="hw-specs">
+            <li><b>Radio</b><span>Bluetooth LE peripheral, 20-byte notifications</span></li>
+            <li><b>Firmware</b><span>Zephyr RTOS · nRF Connect SDK</span></li>
+            <li><b>Identity</b><span>Unique device ID from chip registers</span></li>
+          </ul>
+        </article>
+
+        <article class="card hw lift reveal" style="--d:.08s">
+          <div class="hw-art" aria-hidden="true">
+            <svg viewBox="0 0 220 140">
+              <g class="hw-waves in" transform="translate(30 70) rotate(180)"><path d="M0 -8a10 10 0 0 1 10 10"/><path d="M0 -16a18 18 0 0 1 18 18"/><path d="M0 -24a26 26 0 0 1 26 26"/></g>
+              <path class="uplink" d="M150 44 C150 22 176 14 200 12"/>
+              <circle class="up-dot" r="3.2"><animateMotion dur="1.8s" repeatCount="indefinite" path="M150 44 C150 22 176 14 200 12"/></circle>
+              <rect class="metal" x="44" y="62" width="12" height="18" rx="3"/>
+              <rect class="pcb" x="52" y="44" width="132" height="58" rx="6"/>
+              <g class="pads"><circle cx="62" cy="50" r="2"/><circle cx="70" cy="50" r="2"/><circle cx="78" cy="50" r="2"/><circle cx="86" cy="50" r="2"/><circle cx="94" cy="50" r="2"/><circle cx="102" cy="50" r="2"/><circle cx="110" cy="50" r="2"/><circle cx="118" cy="50" r="2"/>
+                <circle cx="62" cy="96" r="2"/><circle cx="70" cy="96" r="2"/><circle cx="78" cy="96" r="2"/><circle cx="86" cy="96" r="2"/><circle cx="94" cy="96" r="2"/><circle cx="102" cy="96" r="2"/><circle cx="110" cy="96" r="2"/><circle cx="118" cy="96" r="2"/></g>
+              <rect class="chip" x="64" y="58" width="40" height="30" rx="3"/>
+              <g class="ram"><rect x="68" y="76" width="32" height="6" rx="2" class="ram-trk"/><rect x="68" y="76" width="32" height="6" rx="2" class="ram-fill"/></g>
+              <text class="chip-t" x="84" y="71" text-anchor="middle">RAM</text>
+              <rect class="metal" x="124" y="52" width="46" height="42" rx="3"/>
+              <text class="chip-t dark" x="147" y="77" text-anchor="middle">S3</text>
+              <path class="antenna" d="M172 56h6v6h-6v6h6v6h-6v6h6v6"/>
+              <text class="lbl" x="30" y="118" text-anchor="middle">BLE in</text>
+              <text class="lbl" x="196" y="30" text-anchor="end">MQTT/TLS</text>
+              <text class="lbl" x="118" y="124" text-anchor="middle">720-reading ring buffer</text>
+            </svg>
+          </div>
+          <span class="hw-k">× 1 · the bridge</span>
+          <h3>BLE gateway</h3>
+          <p>An ESP32-S3 connects to both nodes as a BLE central, publishes each reading to AWS IoT Core and routes commands back to the right node by device ID.</p>
+          <ul class="hw-specs">
+            <li><b>Uplink</b><span>MQTT over mutual TLS, port 8883</span></li>
+            <li><b>Offline</b><span>RAM ring buffer, about 30 min for two nodes</span></li>
+            <li><b>Commands</b><span>8-byte BLE write to one node only</span></li>
+          </ul>
+        </article>
+
+        <article class="card hw lift reveal" style="--d:.16s">
+          <div class="hw-art" aria-hidden="true">
+            <svg viewBox="0 0 220 140">
+              <path class="cloud" d="M58 52a22 22 0 0 1 40-14 26 26 0 0 1 48 6 18 18 0 0 1 16 26H56a16 16 0 0 1 2-18z"/>
+              <text class="lbl strong" x="108" y="62" text-anchor="middle">AWS</text>
+              <path class="flow" d="M110 72v14"/>
+              <rect class="svc" x="22" y="88" width="56" height="34" rx="8"/><text class="lbl strong" x="50" y="104" text-anchor="middle">IoT Core</text><text class="lbl" x="50" y="115" text-anchor="middle">rules</text>
+              <rect class="svc" x="82" y="88" width="56" height="34" rx="8"/><text class="lbl strong" x="110" y="104" text-anchor="middle">DynamoDB</text><text class="lbl" x="110" y="115" text-anchor="middle">history</text>
+              <rect class="svc" x="142" y="88" width="56" height="34" rx="8"/><text class="lbl strong" x="170" y="104" text-anchor="middle">API + λ</text><text class="lbl" x="170" y="115" text-anchor="middle">Cognito</text>
+              <path class="flow" d="M78 105h4M138 105h4"/>
+              <circle class="svc-dot" r="2.6"><animateMotion dur="2.4s" repeatCount="indefinite" path="M50 88 C50 76 110 76 110 88 C110 76 170 76 170 88"/></circle>
+            </svg>
+          </div>
+          <span class="hw-k">Serverless · AWS</span>
+          <h3>Cloud backend</h3>
+          <p>IoT rules store every reading in DynamoDB. API Gateway and Lambda serve the dashboard, check your login with Cognito and publish commands back to the gateway.</p>
+          <ul class="hw-specs">
+            <li><b>Storage</b><span>Latest status + full reading history</span></li>
+            <li><b>API</b><span>HTTPS REST with JWT authorization</span></li>
+            <li><b>Deploy</b><span>Infrastructure as code with AWS SAM</span></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- ============================================================ how it connects -->
+    <section>
+      <div class="section-title reveal"><span class="eyebrow">Architecture</span><h2>How it connects</h2>
+        <p>Pick a path and watch it travel through the system. Hover, tap or focus any block to inspect that stage.</p></div>
+      <div class="card diagram reveal">
+        <div class="row" style="margin-bottom:10px">
+          <div class="seg" role="group" aria-label="Flow">
+            <button type="button" data-flow="telemetry" class="on" aria-pressed="true">Reading → dashboard</button>
+            <button type="button" data-flow="command" aria-pressed="false">Command → node</button>
+          </div>
+          <button type="button" class="ghost" id="flow-replay">↻ Replay</button>
+        </div>
+        <div class="scroller">
+        <svg viewBox="0 0 900 310" role="group" aria-labelledby="arch-title">
+          <title id="arch-title">Two nRF52840 sensor nodes connect over Bluetooth LE to an ESP32-S3 gateway, which uses MQTT over TLS to AWS IoT Core. IoT rules store data in DynamoDB; API Gateway and Lambda serve the web app over HTTPS and publish commands back through IoT Core.</title>
+          <g>
+            <path id="w-a-gw" class="wire" d="M160 65 L230 142"/>
+            <path id="w-b-gw" class="wire" d="M160 245 L230 178"/>
+            <path id="w-gw-iot" class="wire" d="M380 160 L450 160"/>
+            <path id="w-iot-db" class="wire" d="M600 140 L690 55"/>
+            <path id="w-iot-api" class="wire" d="M600 160 L690 160"/>
+            <path id="w-api-db" class="wire" d="M790 128 L790 82"/>
+            <path id="w-api-web" class="wire" d="M790 192 L790 238"/>
+          </g>
+          <g id="n-a" class="stage" tabindex="0" role="button" aria-label="Inspect Node A"><rect class="box" x="10" y="30" width="150" height="70" rx="14"/><text x="85" y="62" text-anchor="middle" font-weight="700" font-size="15">Node A</text><text x="85" y="82" text-anchor="middle" class="sub">nRF52840 + SHT31</text></g>
+          <g id="n-b" class="stage" tabindex="0" role="button" aria-label="Inspect Node B"><rect class="box" x="10" y="210" width="150" height="70" rx="14"/><text x="85" y="242" text-anchor="middle" font-weight="700" font-size="15">Node B</text><text x="85" y="262" text-anchor="middle" class="sub">nRF52840 + SHT31</text></g>
+          <g id="gw" class="stage" tabindex="0" role="button" aria-label="Inspect the gateway"><rect class="box" x="230" y="125" width="150" height="70" rx="14"/><text x="305" y="157" text-anchor="middle" font-weight="700" font-size="15">Gateway</text><text x="305" y="177" text-anchor="middle" class="sub">ESP32-S3</text></g>
+          <g id="iot" class="stage" tabindex="0" role="button" aria-label="Inspect AWS IoT Core"><rect class="box" x="450" y="125" width="150" height="70" rx="14"/><text x="525" y="157" text-anchor="middle" font-weight="700" font-size="15">AWS IoT Core</text><text x="525" y="177" text-anchor="middle" class="sub">MQTT broker + rules</text></g>
+          <g id="db" class="stage" tabindex="0" role="button" aria-label="Inspect DynamoDB"><rect class="box" x="690" y="20" width="200" height="62" rx="14"/><text x="790" y="48" text-anchor="middle" font-weight="700" font-size="15">DynamoDB</text><text x="790" y="67" text-anchor="middle" class="sub">latest · history</text></g>
+          <g id="api" class="stage" tabindex="0" role="button" aria-label="Inspect API Gateway and Lambda"><rect class="box" x="690" y="128" width="200" height="64" rx="14"/><text x="790" y="156" text-anchor="middle" font-weight="700" font-size="15">API Gateway + Lambda</text><text x="790" y="175" text-anchor="middle" class="sub">Cognito login</text></g>
+          <g id="web" class="stage" tabindex="0" role="button" aria-label="Inspect the web app"><rect class="box" x="690" y="238" width="200" height="62" rx="14"/><text x="790" y="266" text-anchor="middle" font-weight="700" font-size="15">Web app</text><text x="790" y="285" text-anchor="middle" class="sub">EC2 + nginx · HTTPS</text></g>
+          <text class="tag" x="170" y="110">BLE</text><text class="tag" x="170" y="228">BLE</text>
+          <text class="tag" x="398" y="150">MQTT/TLS</text><text class="tag" x="640" y="92">IoT rule</text>
+          <circle class="packet" id="packet" r="6" cx="-20" cy="-20" opacity="0"/>
+        </svg>
+        </div>
+        <div class="flow-progress" aria-hidden="true"><i id="flow-bar"></i></div>
+        <div class="flow-split">
+          <ol class="flow-steps" id="flow-list"></ol>
+          <aside class="inspector" id="inspector" aria-live="polite">
+            <span class="ins-k" id="ins-k">Stage inspector</span>
+            <h3 id="ins-t">Hover or tap a block</h3>
+            <p id="ins-p" class="muted">Each block in the diagram is a real part of the system. Pick one to see what it does and what passes through it.</p>
+            <ul id="ins-f" class="ins-facts"></ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================ offline recovery -->
+    <section id="offline">
+      <div class="section-title reveal"><span class="eyebrow">Offline recovery</span><h2>How offline recovery works</h2>
+        <p>Cut the internet and the nodes keep reporting. The gateway holds every reading in RAM, then uploads them with their original timestamps once the connection returns. Recovered readings show up as purple diamonds.</p></div>
+      <div class="card od reveal" id="od">
+        <div class="od-top">
+          <button type="button" class="od-switch" id="od-net" role="switch" aria-checked="true"><span class="od-knob" aria-hidden="true"></span><span class="od-lbl">Internet <b id="od-net-l">online</b></span></button>
+          <button type="button" class="secondary" id="od-auto">Simulate a 15 s outage</button>
+          <span class="spacer"></span>
+          <span class="od-phase" id="od-phase" role="status">Live: readings go straight to the cloud</span>
+        </div>
+
+        <div class="od-pipe">
+          <div class="od-node">
+            <span class="od-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7" width="16" height="12" rx="3"/><path d="M9 7V4M15 7V4M8 13h.01M12 13h4"/></svg></span>
+            <b>Nodes A + B</b><span class="muted small">a reading every 5 s</span>
+          </div>
+          <div class="od-link ble" aria-hidden="true"><i></i><span>BLE</span></div>
+          <div class="od-node od-gw">
+            <span class="od-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="10" rx="2"/><path d="M7 11h4M7 14h2M15 11h2"/></svg></span>
+            <b>Gateway</b><span class="muted small">RAM buffer <b class="mono" id="od-count">0</b> / 720</span>
+            <div class="od-buf" id="od-buf" aria-hidden="true"></div>
+          </div>
+          <div class="od-link mqtt" id="od-mqtt" aria-hidden="true"><i></i><span>MQTT/TLS</span><em>×</em></div>
+          <div class="od-node od-cloud">
+            <span class="od-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/></svg></span>
+            <b>AWS + dashboard</b><span class="muted small"><b class="mono" id="od-stored">0</b> stored</span>
+          </div>
+        </div>
+
+        <div class="od-chart-wrap">
+          <svg class="od-chart" id="od-chart" viewBox="0 0 800 170" role="img" aria-label="Timeline of readings as the dashboard sees them"></svg>
+          <div class="od-axis muted" aria-hidden="true"><span>about 3 min ago (sped up)</span><span>now</span></div>
+        </div>
+        <div class="chart-legend" aria-hidden="true">
+          <span><i class="lg-dot"></i>Live reading</span>
+          <span><i class="lg-diamond"></i>Recovered reading</span>
+          <span><i class="lg-band"></i>Outage window</span>
+        </div>
+
+        <ol class="od-steps" id="od-steps">
+          <li data-p="live"><b>1 · Online</b><span>Each reading is published to AWS IoT Core as it arrives.</span></li>
+          <li data-p="offline"><b>2 · Outage</b><span>Wi-Fi or MQTT drops. BLE keeps working, so the gateway stores each reading in RAM with its device ID and timestamp.</span></li>
+          <li data-p="flush"><b>3 · Recovery</b><span>On reconnect the buffer is uploaded oldest first, 5 messages at a time, next to live data. An IoT rule files them as history marked "backfill".</span></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ============================================================ team -->
+    <section id="team">
+      <div class="section-title reveal"><span class="eyebrow">Team</span><h2>The team</h2>
+        <p>Two engineers, one system: ECE 413/513, Fall 2026, at the University of Arizona.</p></div>
+      <div class="team">
+        <article class="card person lift reveal">
+          <div class="p-head">
+            <div class="avatar" aria-hidden="true">PM</div>
+            <div>
+              <h3>Parsa Mirfasihi</h3>
+              <span class="p-alias">SeyedParsa Mirfasihi</span>
+              <p class="p-role">Ph.D. student and Graduate Research Assistant, Electrical and Computer Engineering</p>
+            </div>
+          </div>
+          <p>Works in the PRISM Lab at the University of Arizona, advised by Dr. Soheil Salehi, on secure, reliable and intelligent computing systems across emerging hardware platforms.</p>
+          <div class="p-tags" aria-label="Research interests"><span class="chip">Hardware security</span><span class="chip">In-memory computing</span><span class="chip">Trustworthy AI hardware</span><span class="chip">Photonic computing</span></div>
+          <ul class="p-edu">
+            <li><b>M.S. ECE</b><span>San Francisco State University</span></li>
+            <li><b>B.S. ECE</b><span>Iran University of Science and Technology</span></li>
+          </ul>
+          <div class="p-foot">
+            <span class="p-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Shared across the whole system</span>
+            <div class="p-links">
+              <a class="icon-btn" href="https://parsamirfasihi.com" target="_blank" rel="noopener" aria-label="Personal website (opens in a new tab)" title="Website"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></a>
+              <a class="icon-btn" href="https://github.com/parsamrf" target="_blank" rel="noopener" aria-label="GitHub profile (opens in a new tab)" title="GitHub"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg></a>
+              <a class="icon-btn" href="https://www.linkedin.com/in/parsa-mirfasihi/" target="_blank" rel="noopener" aria-label="LinkedIn profile (opens in a new tab)" title="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10.5V17M8 7.3v.01M12 17v-6.5M12 13.5a2.5 2.5 0 0 1 5 0V17"/></svg></a>
+              <a class="icon-btn" href="https://scholar.google.com/citations?hl=en&amp;user=OA3Wf_IAAAAJ" target="_blank" rel="noopener" aria-label="Google Scholar profile (opens in a new tab)" title="Google Scholar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9.5 12 4l10 5.5L12 15z"/><path d="M6 11.7V16c3.5 2.5 8.5 2.5 12 0v-4.3M22 9.5V15"/></svg></a>
+            </div>
+          </div>
+        </article>
+
+        <article class="card person lift reveal" style="--d:.08s">
+          <div class="p-head">
+            <div class="avatar alt" aria-hidden="true">AK</div>
+            <div>
+              <h3>Afsah Khan</h3>
+              <p class="p-role">Project team member, University of Arizona ECE</p>
+            </div>
+          </div>
+          <p>Co-owner of every SmartVent subsystem, from the hardware and firmware to the cloud backend, web app, testing and documentation.</p>
+          <ul class="p-edu">
+            <li><b>Course</b><span>ECE 413/513 IoT</span></li>
+            <li><b>Term</b><span>Fall 2026</span></li>
+            <li><b>School</b><span>University of Arizona, Electrical and Computer Engineering</span></li>
+          </ul>
+          <div class="p-foot">
+            <span class="p-share"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Shared across the whole system</span>
+          </div>
+        </article>
+      </div>
+
+      <div class="card ownership reveal">
+        <div class="own-head">
+          <div><h3>Who did what</h3><p class="muted small">Every task was split equally. Each part of SmartVent below was built, debugged and tested by both members together.</p></div>
+          <div class="own-key" aria-hidden="true"><span><i class="avatar xs">PM</i>Parsa</span><span><i class="avatar xs alt">AK</i>Afsah</span></div>
+        </div>
+        <ul class="own-grid">
+          <li><span class="own-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span><b>Hardware bring-up &amp; wiring</b><span class="own-bar"><i></i><i></i></span><span class="own-who">Joint · 50 / 50</span></li>
+          <li><span class="own-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 14.8V4a2 2 0 0 0-4 0v10.8a4 4 0 1 0 4 0z"/></svg></span><b>Node firmware</b><span class="own-bar"><i></i><i></i></span><span class="own-who">Joint · 50 / 50</span></li>
+          <li><span class="own-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0M12 20h.01"/></svg></span><b>Gateway firmware</b><span class="own-bar"><i></i><i></i></span><span class="own-who">Joint · 50 / 50</span></li>
+          <li><span class="own-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/></svg></span><b>Cloud backend</b><span class="own-bar"><i></i><i></i></span><span class="own-who">Joint · 50 / 50</span></li>
+          <li><span class="own-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg></span><b>Web app</b><span class="own-bar"><i></i><i></i></span><span class="own-who">Joint · 50 / 50</span></li>
+          <li><span class="own-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h9"/></svg></span><b>Testing</b><span class="own-bar"><i></i><i></i></span><span class="own-who">Joint · 50 / 50</span></li>
+          <li><span class="own-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5M8 7h8M8 11h6"/></svg></span><b>Demo &amp; documentation</b><span class="own-bar"><i></i><i></i></span><span class="own-who">Joint · 50 / 50</span></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="js/fx.js"></script>
+  <script src="js/home.js"></script>
+</body>
+</html>

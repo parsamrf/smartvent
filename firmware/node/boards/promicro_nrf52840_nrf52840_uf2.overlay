@@ -1,0 +1,66 @@
+/*
+ * Wiring for the nice!nano (Zephyr target promicro_nrf52840/nrf52840/uf2).
+ * Pins are named by the P-numbers printed on the board.
+ *
+ *   SHT31 (temp + humidity), I2C0, address 0x44:
+ *     SDA = 006 (P0.06)    SCL = 008 (P0.08)
+ *     VIN = VCC (3.3 V)    GND = GND
+ *
+ *   External LEDs (anode -> resistor -> pin, cathode -> GND):
+ *     031 (P0.31) fan = green    029 (P0.29) manual mode = yellow
+ *     002 (P0.02) BLE link = red
+ *
+ * The on-board LED (led0, P0.15) also shows the fan state.
+ * There is no gas sensor, so air quality is not measured.
+ */
+
+&pinctrl {
+	i2c0_default: i2c0_default {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 6)>,
+				<NRF_PSEL(TWIM_SCL, 0, 8)>;
+			/* the breakout may lack pull-ups; use the chip's internal ones */
+			bias-pull-up;
+		};
+	};
+
+	i2c0_sleep: i2c0_sleep {
+		group1 {
+			psels = <NRF_PSEL(TWIM_SDA, 0, 6)>,
+				<NRF_PSEL(TWIM_SCL, 0, 8)>;
+			low-power-enable;
+		};
+	};
+};
+
+&i2c0 {
+	status = "okay";
+	clock-frequency = <I2C_BITRATE_STANDARD>;
+
+	sht31: sht3xd@44 {
+		compatible = "sensirion,sht3xd";
+		reg = <0x44>;
+	};
+};
+
+/ {
+	ext_leds {
+		compatible = "gpio-leds";
+
+		led_fan_ext: led_fan_ext {
+			gpios = <&gpio0 31 GPIO_ACTIVE_HIGH>;
+		};
+		led_manual: led_manual {
+			gpios = <&gpio0 29 GPIO_ACTIVE_HIGH>;
+		};
+		led_link: led_link {
+			gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	aliases {
+		led1 = &led_manual;
+		led2 = &led_link;
+		fan-ext = &led_fan_ext;
+	};
+};

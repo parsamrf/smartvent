@@ -1,0 +1,29 @@
+menu "SmartVent node"
+
+config APP_SIMULATED_SENSORS
+	bool "Generate simulated sensor readings"
+	default n
+	help
+	  Produce synthetic temperature / humidity / air-quality values instead of
+	  reading the SHT31. Useful for bringing up BLE + cloud before
+	  the sensors are wired.
+
+config APP_SAMPLE_PERIOD_MS
+	int "Sensor sampling / telemetry period (ms)"
+	default 5000
+
+config APP_DEFAULT_TEMP_ON_CENTI
+	int "Default fan-on temperature threshold (0.01 degC)"
+	default 2700
+
+config APP_DEFAULT_HUM_ON_CENTI
+	int "Default fan-on humidity threshold (0.01 %RH)"
+	default 6000
+
+config APP_DEFAULT_AQ_ON
+	int "Default fan-on air-quality threshold (ADC millivolts from MQ-135)"
+	default 1500
+
+endmenu
+
+source "Kconfig.zephyr"

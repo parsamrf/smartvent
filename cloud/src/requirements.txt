@@ -1,0 +1,2 @@
+# No third-party packages: boto3 is provided by the Lambda runtime, and the
+# assistant calls its LLM API with urllib.

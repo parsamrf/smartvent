@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>References · SmartVent</title>
+  <meta name="description" content="Third-party hardware SDKs, libraries, cloud services and documentation used to build SmartVent.">
+  <script>try { var t = localStorage.getItem("sv.theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="refs">
+    <div class="page-head ref-head reveal">
+      <div>
+        <span class="eyebrow">Credits</span>
+        <h1>References</h1>
+        <p class="muted">The SDKs, libraries, cloud services and guides SmartVent is built on, from the sensor firmware to this website.</p>
+      </div>
+    </div>
+
+    <div class="ref-tools card reveal" role="search">
+      <div class="ref-search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <label for="ref-q" class="sr-only">Search references</label>
+        <input id="ref-q" type="search" placeholder="Search by name or purpose…" autocomplete="off" spellcheck="false">
+        <kbd aria-hidden="true">/</kbd>
+      </div>
+      <div class="ref-chips" role="group" aria-label="Filter by category" id="ref-chips">
+        <button type="button" class="chip-btn on" data-cat="all" aria-pressed="true">All <span class="n"></span></button>
+        <button type="button" class="chip-btn" data-cat="hw" aria-pressed="false">Hardware &amp; firmware <span class="n"></span></button>
+        <button type="button" class="chip-btn" data-cat="lib" aria-pressed="false">Libraries <span class="n"></span></button>
+        <button type="button" class="chip-btn" data-cat="cloud" aria-pressed="false">Cloud &amp; backend <span class="n"></span></button>
+        <button type="button" class="chip-btn" data-cat="web" aria-pressed="false">Web app &amp; hosting <span class="n"></span></button>
+        <button type="button" class="chip-btn" data-cat="docs" aria-pressed="false">Documentation <span class="n"></span></button>
+        <button type="button" class="chip-btn" data-cat="ai" aria-pressed="false">AI tools <span class="n"></span></button>
+      </div>
+      <p class="ref-count muted small" id="ref-count" role="status" aria-live="polite"></p>
+    </div>
+
+    <section class="ref-section reveal" data-cat="hw" aria-labelledby="h-hw">
+      <h2 id="h-hw"><span class="ref-sico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4M15 2v4M9 18v4M15 18v4M2 9h4M2 15h4M18 9h4M18 15h4"/></svg></span>Hardware &amp; firmware</h2>
+      <div class="ref-grid">
+        <a class="card ref-card" href="https://www.nordicsemi.com/Products/Development-software/nRF-Connect-SDK" target="_blank" rel="noopener">
+          <span class="ref-name">nRF Connect SDK</span><span class="ref-host">nordicsemi.com</span>
+          <span class="ref-desc">Nordic's SDK for the nRF52840 sensor nodes: Bluetooth LE peripheral and the SHT3x (SHT31) sensor driver.</span></a>
+        <a class="card ref-card" href="https://zephyrproject.org/" target="_blank" rel="noopener">
+          <span class="ref-name">Zephyr RTOS</span><span class="ref-host">zephyrproject.org</span>
+          <span class="ref-desc">Real-time OS underneath the node firmware: threads, timers, sensor and BLE subsystems.</span></a>
+        <a class="card ref-card" href="https://github.com/espressif/arduino-esp32" target="_blank" rel="noopener">
+          <span class="ref-name">Arduino core for ESP32</span><span class="ref-host">github.com/espressif</span>
+          <span class="ref-desc">Framework for the ESP32-S3 gateway, including Wi-Fi and TLS (WiFiClientSecure).</span></a>
+      </div>
+    </section>
+
+    <section class="ref-section reveal" data-cat="lib" aria-labelledby="h-lib">
+      <h2 id="h-lib"><span class="ref-sico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 3 8l9 5 9-5z"/><path d="m3 13 9 5 9-5M3 18l9 5 9-5" opacity=".6"/></svg></span>Libraries</h2>
+      <div class="ref-grid">
+        <a class="card ref-card" href="https://github.com/h2zero/NimBLE-Arduino" target="_blank" rel="noopener">
+          <span class="ref-name">NimBLE-Arduino</span><span class="ref-host">github.com/h2zero</span>
+          <span class="ref-desc">BLE central on the gateway: scanning, connecting, notifications and writes to the nodes.</span></a>
+        <a class="card ref-card" href="https://github.com/knolleary/pubsubclient" target="_blank" rel="noopener">
+          <span class="ref-name">PubSubClient</span><span class="ref-host">github.com/knolleary</span>
+          <span class="ref-desc">Lightweight MQTT client the gateway uses to talk to AWS IoT Core.</span></a>
+        <a class="card ref-card" href="https://arduinojson.org/" target="_blank" rel="noopener">
+          <span class="ref-name">ArduinoJson</span><span class="ref-host">arduinojson.org</span>
+          <span class="ref-desc">JSON encoding and decoding of telemetry and commands on the gateway.</span></a>
+        <a class="card ref-card" href="https://boto3.amazonaws.com/" target="_blank" rel="noopener">
+          <span class="ref-name">boto3</span><span class="ref-host">boto3.amazonaws.com</span>
+          <span class="ref-desc">AWS SDK for Python, used inside the Lambda functions.</span></a>
+      </div>
+    </section>
+
+    <section class="ref-section reveal" data-cat="cloud" aria-labelledby="h-cloud">
+      <h2 id="h-cloud"><span class="ref-sico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18a5 5 0 0 1-.6-9.96A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 9z"/></svg></span>Cloud &amp; backend</h2>
+      <div class="ref-grid">
+        <a class="card ref-card" href="https://aws.amazon.com/iot-core/" target="_blank" rel="noopener">
+          <span class="ref-name">AWS IoT Core</span><span class="ref-host">aws.amazon.com</span>
+          <span class="ref-desc">MQTT broker, per-device certificates and the topic rules that route telemetry.</span></a>
+        <a class="card ref-card" href="https://aws.amazon.com/dynamodb/" target="_blank" rel="noopener">
+          <span class="ref-name">Amazon DynamoDB</span><span class="ref-host">aws.amazon.com</span>
+          <span class="ref-desc">Device registry, latest status, reading history and command status.</span></a>
+        <a class="card ref-card" href="https://aws.amazon.com/lambda/" target="_blank" rel="noopener">
+          <span class="ref-name">AWS Lambda</span><span class="ref-host">aws.amazon.com</span>
+          <span class="ref-desc">Serverless functions behind every REST endpoint.</span></a>
+        <a class="card ref-card" href="https://aws.amazon.com/api-gateway/" target="_blank" rel="noopener">
+          <span class="ref-name">Amazon API Gateway (HTTP API)</span><span class="ref-host">aws.amazon.com</span>
+          <span class="ref-desc">HTTPS front door for the REST API, with JWT authorization.</span></a>
+        <a class="card ref-card" href="https://aws.amazon.com/cognito/" target="_blank" rel="noopener">
+          <span class="ref-name">Amazon Cognito</span><span class="ref-host">aws.amazon.com</span>
+          <span class="ref-desc">User accounts, sign-up and JWT authentication.</span></a>
+        <a class="card ref-card" href="https://docs.aws.amazon.com/serverless-application-model/" target="_blank" rel="noopener">
+          <span class="ref-name">AWS SAM</span><span class="ref-host">docs.aws.amazon.com</span>
+          <span class="ref-desc">Infrastructure as code: defines and deploys the whole backend stack.</span></a>
+      </div>
+    </section>
+
+    <section class="ref-section reveal" data-cat="web" aria-labelledby="h-web">
+      <h2 id="h-web"><span class="ref-sico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M7 6.5h.01M10 6.5h.01"/></svg></span>Web app &amp; hosting</h2>
+      <div class="ref-grid">
+        <a class="card ref-card" href="https://aws.amazon.com/ec2/" target="_blank" rel="noopener">
+          <span class="ref-name">Amazon EC2</span><span class="ref-host">aws.amazon.com</span>
+          <span class="ref-desc">Virtual server that hosts this website.</span></a>
+        <a class="card ref-card" href="https://nginx.org/" target="_blank" rel="noopener">
+          <span class="ref-name">nginx</span><span class="ref-host">nginx.org</span>
+          <span class="ref-desc">Web server delivering the static site over HTTPS.</span></a>
+        <a class="card ref-card" href="https://letsencrypt.org/" target="_blank" rel="noopener">
+          <span class="ref-name">Let's Encrypt</span><span class="ref-host">letsencrypt.org</span>
+          <span class="ref-desc">Free TLS certificate for the site.</span></a>
+        <a class="card ref-card" href="https://certbot.eff.org/" target="_blank" rel="noopener">
+          <span class="ref-name">certbot</span><span class="ref-host">certbot.eff.org</span>
+          <span class="ref-desc">Requests and renews the Let's Encrypt certificate on the server.</span></a>
+        <a class="card ref-card" href="https://sslip.io/" target="_blank" rel="noopener">
+          <span class="ref-name">sslip.io</span><span class="ref-host">sslip.io</span>
+          <span class="ref-desc">Free DNS hostname that maps to the EC2 instance's IP address.</span></a>
+        <a class="card ref-card" href="https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API" target="_blank" rel="noopener">
+          <span class="ref-name">Canvas API</span><span class="ref-host">developer.mozilla.org</span>
+          <span class="ref-desc">Draws the history chart and the animated background. The site uses no front-end frameworks.</span></a>
+        <a class="card ref-card" href="https://developer.mozilla.org/en-US/docs/Web/SVG" target="_blank" rel="noopener">
+          <span class="ref-name">SVG</span><span class="ref-host">developer.mozilla.org</span>
+          <span class="ref-desc">Dashboard gauges, sparklines, icons and the architecture diagram.</span></a>
+      </div>
+    </section>
+
+    <section class="ref-section reveal" data-cat="docs" aria-labelledby="h-docs">
+      <h2 id="h-docs"><span class="ref-sico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4.5A2.5 2.5 0 0 1 6.5 2H20v17H6.5A2.5 2.5 0 0 0 4 21.5z"/><path d="M4 21.5A2.5 2.5 0 0 1 6.5 19H20v3H6.5M8 7h8M8 11h6"/></svg></span>Documentation &amp; tutorials</h2>
+      <div class="ref-grid">
+        <a class="card ref-card" href="https://academy.nordicsemi.com/courses/bluetooth-low-energy-fundamentals/" target="_blank" rel="noopener">
+          <span class="ref-name">Bluetooth LE Fundamentals</span><span class="ref-host">academy.nordicsemi.com</span>
+          <span class="ref-desc">Nordic DevAcademy course on GATT services, advertising and connections.</span></a>
+        <a class="card ref-card" href="https://docs.aws.amazon.com/iot/latest/developerguide/iot-rules.html" target="_blank" rel="noopener">
+          <span class="ref-name">AWS IoT rules guide</span><span class="ref-host">docs.aws.amazon.com</span>
+          <span class="ref-desc">How topic rules select MQTT messages and write them to DynamoDB.</span></a>
+        <a class="card ref-card" href="https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-sign-up.html" target="_blank" rel="noopener">
+          <span class="ref-name">Cognito pre sign-up trigger</span><span class="ref-host">docs.aws.amazon.com</span>
+          <span class="ref-desc">Lambda trigger used to customize account registration.</span></a>
+        <a class="card ref-card" href="https://github.com/prismlabarizona/ECE_415-513_Project_Template" target="_blank" rel="noopener">
+          <span class="ref-name">ECE 413/513 project template</span><span class="ref-host">github.com/prismlabarizona</span>
+          <span class="ref-desc">Course starter repository and project requirements.</span></a>
+      </div>
+    </section>
+
+    <section class="ref-section reveal" data-cat="ai" aria-labelledby="h-ai">
+      <h2 id="h-ai"><span class="ref-sico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M6 6l2 2M16 16l2 2M18 6l-2 2M8 16l-2 2"/><circle cx="12" cy="12" r="3"/></svg></span>AI tools</h2>
+      <div class="ref-grid">
+        <a class="card ref-card" href="https://www.anthropic.com/claude-code" target="_blank" rel="noopener">
+          <span class="ref-name">Claude Code</span><span class="ref-host">anthropic.com</span>
+          <span class="ref-desc">Development assistant that helped us draft, refactor and debug code and documentation. The team wired and tested the hardware, ran the system, and reviewed all submitted code.</span></a>
+        <a class="card ref-card" href="https://console.groq.com/docs" target="_blank" rel="noopener">
+          <span class="ref-name">Qwen via Groq API</span><span class="ref-host">groq.com</span>
+          <span class="ref-desc">Open-source language model that powers the read-only Device Assistant. It is a feature of the system, not a development aid.</span></a>
+      </div>
+    </section>
+
+    <div class="card empty ref-empty" id="ref-empty" hidden>
+      <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" aria-hidden="true"><circle cx="44" cy="44" r="22"/><path d="m60 60 18 18M36 44h16"/></svg>
+      <h2>No matching references</h2>
+      <p class="muted">Try a different word, or show every category.</p>
+      <button type="button" class="secondary" id="ref-reset">Clear filters</button>
+    </div>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="js/fx.js"></script>
+  <script>
+    // Live search + category chips. Without JS every reference is simply listed.
+    (() => {
+      const q = document.getElementById("ref-q");
+      const chips = [...document.querySelectorAll("#ref-chips .chip-btn")];
+      const sections = [...document.querySelectorAll(".ref-section")];
+      const all = document.querySelectorAll(".ref-card");
+      let cat = "all";
+      sections.forEach((s) => s.querySelectorAll(".ref-card").forEach((c) => { c.dataset.cat = s.dataset.cat; c._text = c.textContent.toLowerCase(); }));
+      chips.forEach((b) => { b.querySelector(".n").textContent = b.dataset.cat === "all" ? all.length : document.querySelectorAll(`.ref-section[data-cat="${b.dataset.cat}"] .ref-card`).length; });
+
+      function apply() {
+        const words = q.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+        let shown = 0;
+        sections.forEach((s) => {
+          let n = 0;
+          s.querySelectorAll(".ref-card").forEach((c) => {
+            const ok = (cat === "all" || c.dataset.cat === cat) && words.every((w) => c._text.includes(w));
+            c.hidden = !ok; if (ok) n++;
+          });
+          s.hidden = n === 0; shown += n;
+        });
+        document.getElementById("ref-empty").hidden = shown > 0;
+        document.getElementById("ref-count").textContent = shown === all.length ? `${all.length} references` : `Showing ${shown} of ${all.length} references`;
+      }
+      chips.forEach((b) => b.addEventListener("click", () => {
+        cat = b.dataset.cat;
+        chips.forEach((x) => { x.classList.toggle("on", x === b); x.setAttribute("aria-pressed", String(x === b)); });
+        apply();
+      }));
+      q.addEventListener("input", apply);
+      document.getElementById("ref-reset").addEventListener("click", () => { q.value = ""; chips[0].click(); q.focus(); });
+      // "/" focuses the search box, Escape clears it.
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "/" && !/input|textarea|select/i.test(document.activeElement.tagName)) { e.preventDefault(); q.focus(); }
+      });
+      q.addEventListener("keydown", (e) => { if (e.key === "Escape" && q.value) { q.value = ""; apply(); } });
+      apply();
+    })();
+  </script>
+</body>
+</html>

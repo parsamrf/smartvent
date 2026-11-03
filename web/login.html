@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Log in · SmartVent</title>
+  <script>try { var t = localStorage.getItem("sv.theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main>
+    <div class="auth-shell">
+      <aside class="auth-side">
+        <div class="auth-fan" id="auth-fan" aria-hidden="true"></div>
+        <h2>Welcome back</h2>
+        <p>Pick up where you left off: live readings and fan controls for every room.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>See every node's temperature, humidity and fan state</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Override a fan or change thresholds in a tap</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Your account is the only one that can control your nodes</li>
+        </ul>
+      </aside>
+      <div class="auth-form stack">
+        <h1 style="font-size:1.6rem">Log in</h1>
+        <div id="msg" class="alert" role="status"></div>
+        <form id="form" class="stack">
+          <div><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
+          <div><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" required></div>
+          <button type="submit" style="width:100%">Log in</button>
+        </form>
+        <p class="muted small">No account yet? <a href="register.html">Create one</a></p>
+      </div>
+    </div>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="js/fx.js"></script>
+  <script>
+    const msg = document.getElementById("msg");
+    const [email, password] = ["email", "password"].map((id) => document.getElementById(id));
+    const q = new URLSearchParams(location.search);
+    if (q.has("registered")) { msg.className = "alert ok"; msg.textContent = "Account created. Log in to continue."; }
+    if (q.has("expired")) { msg.className = "alert warn"; msg.textContent = "Your session expired. Please log in again."; }
+    if (q.has("loggedout")) { msg.className = "alert info"; msg.textContent = "You have been logged out."; }
+    if (Auth.isLoggedIn() && !q.has("expired")) location.replace("dashboard.html");
+    UI.pwToggle();
+    document.getElementById("auth-fan").innerHTML = UI.FAN_SVG;
+    UI.fan(document.querySelector("#auth-fan .fan")).set(true);
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const btn = e.submitter; btn.disabled = true; btn.textContent = "Logging in…";
+      msg.className = "alert"; msg.textContent = "";
+      try {
+        await Auth.login(email.value.trim(), password.value);
+        location.href = "dashboard.html";
+      } catch (err) {
+        msg.className = "alert error"; msg.textContent = err.message;
+        btn.disabled = false; btn.textContent = "Log in";
+      }
+    });
+  </script>
+</body>
+</html>

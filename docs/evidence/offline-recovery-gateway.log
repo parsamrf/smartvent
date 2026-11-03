@@ -1,0 +1,20 @@
+﻿# Gateway serial log during the offline-recovery test (hotspot off 19:33:44 to 19:39:19).
+# Filtered to status, cloud, buffer and BLE lines; the hotspot name is masked.
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=0 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=6 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=18 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=30 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=42 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=54 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=66 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=78 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=90 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=102 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=114 dropped=0
+[STATUS] online=0 forcedOffline=0 nodes=2 buffered=126 dropped=0
+[MQTT] Connecting to AWS IoT...
+[MQTT] Connected, subscribed to smartvent/+/cmd
+[CLOUD] ONLINE (buffered=136)
+[BUF] Backfill complete
+[STATUS] online=1 forcedOffline=0 nodes=2 buffered=0 dropped=0
+[STATUS] online=1 forcedOffline=0 nodes=2 buffered=0 dropped=0

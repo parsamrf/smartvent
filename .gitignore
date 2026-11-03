@@ -1,0 +1,28 @@
+﻿# Secrets - never commit
+firmware/gateway/src/secrets.h
+firmware/gateway/certs/
+*.pem
+*.pem.crt
+*.pem.key
+.env
+
+# Build output / installed modules
+firmware/node/build*/
+firmware/gateway/.pio/
+cloud/.aws-sam/
+cloud/samconfig.toml
+node_modules/
+__pycache__/
+*.pyc
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Course handout
+*.pdf
+
+# Local planning notes
+VIDEO_PLAN.md

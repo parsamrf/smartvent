@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Register · SmartVent</title>
+  <script>try { var t = localStorage.getItem("sv.theme"); if (t) document.documentElement.dataset.theme = t; } catch (e) {}</script>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main>
+    <div class="auth-shell">
+      <aside class="auth-side">
+        <div class="auth-fan" id="auth-fan" aria-hidden="true"></div>
+        <h2>Smarter air, zero effort</h2>
+        <p>Create an account, add your sensor nodes, and SmartVent takes it from there.</p>
+        <ul>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Add each node by its device ID, and it appears on your dashboard</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Fans run automatically; you step in only when you want to</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Traffic is encrypted end to end</li>
+        </ul>
+      </aside>
+      <div class="auth-form stack">
+        <h1 style="font-size:1.6rem">Create an account</h1>
+        <div id="msg" class="alert" role="status"></div>
+        <form id="form" class="stack">
+          <div><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
+          <div>
+            <label for="password">Password</label>
+            <input id="password" type="password" autocomplete="new-password" minlength="8" required>
+            <div class="pw-meter" aria-hidden="true"><i id="pw-bar"></i></div>
+            <p class="field-hint" id="pw-hint">At least 8 characters, with a lowercase letter and a number.</p>
+          </div>
+          <div><label for="confirm">Confirm password</label><input id="confirm" type="password" autocomplete="new-password" required></div>
+          <button type="submit" style="width:100%">Register</button>
+        </form>
+        <p class="muted small">Already registered? <a href="login.html">Log in</a></p>
+      </div>
+    </div>
+  </main>
+  <script src="js/config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/layout.js"></script>
+  <script src="js/bg.js"></script>
+  <script src="js/fx.js"></script>
+  <script>
+    const msg = document.getElementById("msg");
+    const [email, password, confirm] = ["email", "password", "confirm"].map((id) => document.getElementById(id));
+    UI.pwToggle();
+    document.getElementById("auth-fan").innerHTML = UI.FAN_SVG;
+    UI.fan(document.querySelector("#auth-fan .fan")).set(true);
+
+    // Strength meter: length, a lowercase letter, a digit (the server's rules), plus a bonus for symbols/length.
+    password.addEventListener("input", () => {
+      const v = password.value;
+      const score = [v.length >= 8, /[a-z]/.test(v), /\d/.test(v), v.length >= 12 || /[^a-zA-Z0-9]/.test(v)].filter(Boolean).length;
+      const bar = document.getElementById("pw-bar");
+      bar.style.width = `${v ? score * 25 : 0}%`;
+      bar.style.background = score <= 2 ? "var(--error)" : score === 3 ? "var(--warn)" : "var(--ok)";
+      const missing = [];
+      if (v.length < 8) missing.push("8+ characters");
+      if (!/[a-z]/.test(v)) missing.push("a lowercase letter");
+      if (!/\d/.test(v)) missing.push("a number");
+      document.getElementById("pw-hint").textContent = !v ? "At least 8 characters, with a lowercase letter and a number."
+        : missing.length ? `Still needs: ${missing.join(", ")}.` : "Looks good.";
+    });
+
+    document.getElementById("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      msg.className = "alert"; msg.textContent = "";
+      if (password.value !== confirm.value) {
+        msg.className = "alert error"; msg.textContent = "Passwords do not match.";
+        return;
+      }
+      const btn = e.submitter; btn.disabled = true; btn.textContent = "Creating account…";
+      try {
+        await Auth.register(email.value.trim(), password.value);
+        location.href = "login.html?registered=1";
+      } catch (err) {
+        msg.className = "alert error"; msg.textContent = err.message;
+        btn.disabled = false; btn.textContent = "Register";
+      }
+    });
+  </script>
+</body>
+</html>

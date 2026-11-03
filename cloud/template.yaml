@@ -1,0 +1,309 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  SmartVent - IoT ventilation system backend: Cognito auth, DynamoDB storage,
+  AWS IoT rules, and the HTTP API + Lambda used by the web app (hosted on EC2).
+
+Parameters:
+  AssistantKeyParam:
+    Type: String
+    Default: /smartvent/assistant-api-key
+    Description: SSM SecureString parameter holding the LLM API key (AI assistant).
+  AssistantBaseUrl:
+    Type: String
+    Default: https://api.groq.com/openai/v1
+    Description: OpenAI-compatible chat API base URL (Groq free tier by default).
+  AssistantModel:
+    Type: String
+    Default: qwen/qwen3.8-27b
+    Description: Open-source model id served by that API.
+
+Globals:
+  Function:
+    Runtime: python3.12
+    CodeUri: src/
+    Timeout: 10
+    MemorySize: 256
+    Architectures: [arm64]
+    Environment:
+      Variables:
+        DEVICES_TABLE: !Ref DevicesTable
+        LATEST_TABLE: !Ref LatestTable
+        HISTORY_TABLE: !Ref HistoryTable
+        COMMANDS_TABLE: !Ref CommandsTable
+
+Resources:
+  # ---------------------------------------------------------------- Auth
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: smartvent-users
+      UsernameAttributes: [email]
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireUppercase: false
+          RequireSymbols: false
+      LambdaConfig:
+        PreSignUp: !GetAtt PreSignUpFunction.Arn
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: smartvent-web
+      GenerateSecret: false
+      ExplicitAuthFlows: [ALLOW_USER_PASSWORD_AUTH, ALLOW_REFRESH_TOKEN_AUTH]
+      PreventUserExistenceErrors: ENABLED
+
+  # Auto-confirms new sign-ups so the demo doesn't need email verification.
+  PreSignUpFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: presignup.handler
+
+  PreSignUpPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref PreSignUpFunction
+      Principal: cognito-idp.amazonaws.com
+      SourceArn: !Sub arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*
+
+  # ---------------------------------------------------------------- Storage
+  DevicesTable: # deviceId -> owner, display name
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: deviceId, AttributeType: S }
+        - { AttributeName: ownerId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: deviceId, KeyType: HASH }
+      GlobalSecondaryIndexes:
+        - IndexName: OwnerIndex
+          KeySchema:
+            - { AttributeName: ownerId, KeyType: HASH }
+          Projection: { ProjectionType: ALL }
+
+  LatestTable: # one item per node: latest reported reading + status
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: deviceId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: deviceId, KeyType: HASH }
+
+  HistoryTable: # every reading (live + backfill) as its own record
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: deviceId, AttributeType: S }
+        - { AttributeName: ts, AttributeType: N }
+      KeySchema:
+        - { AttributeName: deviceId, KeyType: HASH }
+        - { AttributeName: ts, KeyType: RANGE }
+      TimeToLiveSpecification: { AttributeName: expiresAt, Enabled: true }
+
+  CommandsTable: # command id -> delivery status reported by the gateway
+    Type: AWS::DynamoDB::Table
+    Properties:
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - { AttributeName: cmdId, AttributeType: S }
+      KeySchema:
+        - { AttributeName: cmdId, KeyType: HASH }
+      TimeToLiveSpecification: { AttributeName: expiresAt, Enabled: true }
+
+  # ---------------------------------------------------------------- AWS IoT
+  GatewayPolicy:
+    Type: AWS::IoT::Policy
+    Properties:
+      PolicyName: smartvent-gateway-policy
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action: iot:Connect
+            Resource: !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:client/smartvent-gateway
+          - Effect: Allow
+            Action: iot:Publish
+            Resource:
+              - !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/smartvent/*/telemetry
+              - !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/smartvent/*/backfill
+              - !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/smartvent/*/ack
+          - Effect: Allow
+            Action: iot:Subscribe
+            Resource: !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topicfilter/smartvent/+/cmd
+          - Effect: Allow
+            Action: iot:Receive
+            Resource: !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/smartvent/*/cmd
+
+  IotRuleRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal: { Service: iot.amazonaws.com }
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: write-dynamodb
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: dynamodb:PutItem
+                Resource:
+                  - !GetAtt LatestTable.Arn
+                  - !GetAtt HistoryTable.Arn
+                  - !GetAtt CommandsTable.Arn
+
+  # Live telemetry -> Latest (overwrite) + History (append).
+  # deviceId is taken from the topic so each record identifies its node.
+  TelemetryRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      TopicRulePayload:
+        AwsIotSqlVersion: "2016-03-23"
+        RuleDisabled: false
+        Sql: >-
+          SELECT *, topic(2) AS deviceId, timestamp() AS receivedAt,
+          floor(timestamp() / 1000) + 2592000 AS expiresAt
+          FROM 'smartvent/+/telemetry'
+        Actions:
+          - DynamoDBv2:
+              RoleArn: !GetAtt IotRuleRole.Arn
+              PutItem: { TableName: !Ref LatestTable }
+          - DynamoDBv2:
+              RoleArn: !GetAtt IotRuleRole.Arn
+              PutItem: { TableName: !Ref HistoryTable }
+
+  # Readings recovered after an outage -> History only (never the latest status).
+  BackfillRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      TopicRulePayload:
+        AwsIotSqlVersion: "2016-03-23"
+        RuleDisabled: false
+        Sql: >-
+          SELECT *, topic(2) AS deviceId, timestamp() AS receivedAt,
+          floor(timestamp() / 1000) + 2592000 AS expiresAt
+          FROM 'smartvent/+/backfill'
+        Actions:
+          - DynamoDBv2:
+              RoleArn: !GetAtt IotRuleRole.Arn
+              PutItem: { TableName: !Ref HistoryTable }
+
+  # Command delivery acknowledgements from the gateway.
+  AckRule:
+    Type: AWS::IoT::TopicRule
+    Properties:
+      TopicRulePayload:
+        AwsIotSqlVersion: "2016-03-23"
+        RuleDisabled: false
+        Sql: >-
+          SELECT *, topic(2) AS deviceId, floor(timestamp() / 1000) + 86400 AS expiresAt
+          FROM 'smartvent/+/ack' WHERE cmdId <> ''
+        Actions:
+          - DynamoDBv2:
+              RoleArn: !GetAtt IotRuleRole.Arn
+              PutItem: { TableName: !Ref CommandsTable }
+
+  # ---------------------------------------------------------------- HTTP API
+  Api:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins: ["*"]
+        AllowHeaders: [authorization, content-type]
+        AllowMethods: [GET, POST, PUT, DELETE, OPTIONS]
+      Auth:
+        DefaultAuthorizer: CognitoJwt
+        Authorizers:
+          CognitoJwt:
+            IdentitySource: $request.header.Authorization
+            JwtConfiguration:
+              issuer: !Sub https://cognito-idp.${AWS::Region}.amazonaws.com/${UserPool}
+              audience: [!Ref UserPoolClient]
+
+  DevicesFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: devices.handler
+      Policies:
+        - DynamoDBCrudPolicy: { TableName: !Ref DevicesTable }
+        - DynamoDBReadPolicy: { TableName: !Ref LatestTable }
+      Events:
+        List:     { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: /devices, Method: GET } }
+        Register: { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: /devices, Method: POST } }
+        Remove:   { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: "/devices/{deviceId}", Method: DELETE } }
+
+  HistoryFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: history.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref DevicesTable }
+        - DynamoDBReadPolicy: { TableName: !Ref HistoryTable }
+      Events:
+        History: { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: "/devices/{deviceId}/history", Method: GET } }
+
+  CommandsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: commands.handler
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref DevicesTable }
+        - DynamoDBCrudPolicy: { TableName: !Ref CommandsTable }
+        - Statement:
+            - Effect: Allow
+              Action: iot:DescribeEndpoint
+              Resource: "*"
+            - Effect: Allow
+              Action: iot:Publish
+              Resource: !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:topic/smartvent/*/cmd
+      Events:
+        Command:  { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: "/devices/{deviceId}/commands", Method: POST } }
+        Settings: { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: "/devices/{deviceId}/settings", Method: PUT } }
+        Status:   { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: "/devices/{deviceId}/commands/{cmdId}", Method: GET } }
+
+  AssistantFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: assistant.handler
+      Timeout: 29 # HTTP API integration limit is 30 s
+      Environment:
+        Variables:
+          ASSISTANT_KEY_PARAM: !Ref AssistantKeyParam
+          ASSISTANT_BASE_URL: !Ref AssistantBaseUrl
+          ASSISTANT_MODEL: !Ref AssistantModel
+      Policies:
+        - DynamoDBReadPolicy: { TableName: !Ref DevicesTable }
+        - DynamoDBReadPolicy: { TableName: !Ref LatestTable }
+        - DynamoDBReadPolicy: { TableName: !Ref HistoryTable }
+        - Statement:
+            - Effect: Allow
+              Action: ssm:GetParameter
+              Resource: !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AssistantKeyParam}
+      Events:
+        Ask: { Type: HttpApi, Properties: { ApiId: !Ref Api, Path: /assistant, Method: POST } }
+
+  # The website itself is served by nginx on the EC2 instance (see server/).
+
+Outputs:
+  ApiUrl:
+    Value: !Sub https://${Api}.execute-api.${AWS::Region}.amazonaws.com
+  UserPoolId:
+    Value: !Ref UserPool
+  UserPoolClientId:
+    Value: !Ref UserPoolClient
+  Region:
+    Value: !Ref AWS::Region
+  GatewayPolicyName:
+    Value: !Ref GatewayPolicy
