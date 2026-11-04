@@ -170,7 +170,7 @@ The hardware: two nodes (nice!nano with SHT31 and three LEDs each) on one breadb
 | Documentation | 50 % | 50 % |
 | Demonstrations | 50 % | 50 % |
 
-The team shared all tasks across the whole system.
+The team shared all tasks across the whole system. Sarower ([LinkedIn](https://www.linkedin.com/in/sarower/)) helped with the demo and the hardware setup (breadboard and components); the percentages above are for the two team members.
 
 ## 9. References
 - **Platforms and SDKs:** [nRF Connect SDK and Zephyr](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/index.html), [PlatformIO](https://platformio.org/), [Arduino-ESP32](https://github.com/espressif/arduino-esp32).

@@ -697,6 +697,7 @@ dialog .actions { display: flex; gap: 10px; justify-content: flex-end; margin-to
 /* team */
 .team { display: grid; grid-template-columns: 1.55fr 1fr; gap: 16px; }
 @media (max-width: 860px) { .team { grid-template-columns: 1fr; } }
+.team .person.helper { grid-column: 1 / -1; }
 .person { display: flex; flex-direction: column; }
 .person .p-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
 .avatar { flex: none; width: 56px; height: 56px; border-radius: 17px; background: var(--grad); color: var(--accent-ink); display: grid; place-items: center; font-weight: 800; font-size: 1.12rem; letter-spacing: 0.02em; box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--accent) 80%, transparent); font-style: normal; }

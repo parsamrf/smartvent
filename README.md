@@ -149,6 +149,8 @@ The gateway connects to both nodes automatically. Serial command `s` prints its 
 - Parsa Mirfasihi: [website](https://parsamirfasihi.com), [GitHub](https://github.com/parsamrf), [LinkedIn](https://www.linkedin.com/in/parsa-mirfasihi/)
 - Afsah Khan: [LinkedIn](https://www.linkedin.com/in/afsah-sharaf-khan-029384311/)
 
+Contributor: **Sarower** ([LinkedIn](https://www.linkedin.com/in/sarower/)) helped with the demo and the hardware setup (breadboard and components).
+
 ## Lessons learned / Challenges
 - **Wi-Fi band:** the ESP32-S3 only joins 2.4 GHz networks. An iPhone hotspot needs "Maximize Compatibility" turned on.
 - **Toolchain paths:** the nRF Connect SDK build fails when the project path contains a space (a Kconfig step does not quote it), so we build from a copy in a path without spaces.
