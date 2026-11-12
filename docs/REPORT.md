@@ -1,7 +1,9 @@
 # SmartVent: project documentation and user manual
 
 ECE 413/513 "Make It Smart", Fall 2026, University of Arizona.
-Team: Parsa Mirfasihi and Afsah Khan. Website: https://3-17-254-71.sslip.io
+Team: Parsa Mirfasihi, Afsah Khan and Sarower Afjal. Website: https://3-17-254-71.sslip.io. Source: https://github.com/parsamrf/smartvent
+
+This document is the user manual and the project report. It covers the ECE 513 requirements (HTTPS and offline data recovery) and the AI Device Assistant extra credit.
 
 ## 1. Overview
 
@@ -102,7 +104,7 @@ While Wi-Fi or MQTT is down, the gateway keeps receiving readings from both node
 | `web/js/demo-api.js` | Simulated backend for demo mode |
 
 ## 5. Results
-Both nodes were verified end to end. Evidence recorded during testing:
+Both nodes were verified end to end. The full demo is recorded in two videos, listed in the [README](../README.md): part 1 (12:01) shows the website and the user experience, part 2 (7:38) walks through the implementation. Evidence recorded during testing:
 
 - **Both nodes reporting:** the gateway log shows `nodes=2`, and the dashboard shows Bedroom and Kitchen live. Example live readings: Bedroom 23.4 C / 48.5 %, Kitchen 23.8 C / 49.4 %.
 - **Automatic control:** warming the Kitchen sensor above 27 C (peak about 33 C) turned its fan on automatically, and the dashboard showed "Over limit" with "Fans running: 1".
@@ -111,6 +113,16 @@ Both nodes were verified end to end. Evidence recorded during testing:
 - **Offline recovery:** the hotspot was turned off from 19:33:44 to 19:39:19 (about 5 min 35 s). The gateway kept both nodes connected over BLE and buffered 136 readings. After reconnecting it logged `Backfill complete`, and DynamoDB held 68 backfill records per node at 5-second spacing with no duplicates. `Latest` stayed live. The gateway's log is saved in [evidence/offline-recovery-gateway.log](evidence/offline-recovery-gateway.log).
 - **HTTPS:** HTTP returns a 301 redirect to HTTPS, HSTS is present, and the certificate verifies.
 - **Assistant:** it answered "which room is warmest", "is the fan on in each room and why" and "how has humidity changed in the last hour" from live data, said the data did not support an answer for "CO2 level" and "temperature yesterday at noon", and declined to switch a fan on.
+
+### Recorded readings
+Latest stored reading of each node, read from the `Latest` table through `GET /devices` (time shown in UTC):
+
+| Node | Device id | Temperature | Humidity | Mode | Fan | Last update |
+|---|---|---|---|---|---|---|
+| Bedroom | `vent-9e5d0536` | 23.21 C | 46.19 % | Auto | Off | 2026-11-03 19:25:29 |
+| Kitchen | `vent-6d5dccef` | 23.39 C | 48.17 % | Auto | On | 2026-11-03 19:25:28 |
+
+The Kitchen fan is on at 23.39 C because that node's humidity limit was lowered to 45 % for the demo, and its humidity (48.17 %) was above it. Each node applies its own thresholds.
 
 ### Screenshots and photos
 Device-specific commands. Bedroom in Manual with the fan on, Kitchen still in Auto with the fan off:
@@ -161,16 +173,16 @@ The hardware: two nodes (nice!nano with SHT31 and three LEDs each) on one breadb
 
 ## 8. Team contributions
 
-| Component | Parsa Mirfasihi | Afsah Khan |
-|---|---|---|
-| Hardware | 50 % | 50 % |
-| Firmware (nodes and gateway) | 50 % | 50 % |
-| Cloud backend | 50 % | 50 % |
-| Web application | 50 % | 50 % |
-| Documentation | 50 % | 50 % |
-| Demonstrations | 50 % | 50 % |
+| Component | Parsa Mirfasihi | Afsah Khan | Sarower Afjal | Total |
+|---|---|---|---|---|
+| Hardware | 35 % | 35 % | 30 % | 100 % |
+| Firmware (nodes and gateway) | 35 % | 35 % | 30 % | 100 % |
+| Cloud backend | 35 % | 35 % | 30 % | 100 % |
+| Web application | 35 % | 35 % | 30 % | 100 % |
+| Documentation | 35 % | 35 % | 30 % | 100 % |
+| Demonstrations | 35 % | 35 % | 30 % | 100 % |
 
-The team shared all tasks across the whole system. Sarower ([LinkedIn](https://www.linkedin.com/in/sarower/)) helped with the demo and the hardware setup (breadboard and components); the percentages above are for the two team members.
+All three members worked on every part of the system, so each component has the same split. Links: [Parsa Mirfasihi](https://www.linkedin.com/in/parsa-mirfasihi/), [Afsah Khan](https://www.linkedin.com/in/afsah-sharaf-khan-029384311/), [Sarower Afjal](https://www.linkedin.com/in/sarower/).
 
 ## 9. References
 - **Platforms and SDKs:** [nRF Connect SDK and Zephyr](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/index.html), [PlatformIO](https://platformio.org/), [Arduino-ESP32](https://github.com/espressif/arduino-esp32).
@@ -179,4 +191,5 @@ The team shared all tasks across the whole system. Sarower ([LinkedIn](https://w
 - **AWS:** [AWS IoT Core](https://docs.aws.amazon.com/iot/), [DynamoDB](https://docs.aws.amazon.com/dynamodb/), [API Gateway HTTP API](https://docs.aws.amazon.com/apigateway/latest/developerguide/http-api.html), [Lambda](https://docs.aws.amazon.com/lambda/), [Cognito](https://docs.aws.amazon.com/cognito/), [AWS SAM](https://docs.aws.amazon.com/serverless-application-model/).
 - **Web hosting and HTTPS:** [nginx](https://nginx.org/en/docs/), [Let's Encrypt and Certbot](https://certbot.eff.org/).
 - **Assistant model:** [Qwen](https://github.com/QwenLM/Qwen3) served through [Groq's API](https://console.groq.com/docs).
-- **AI development tools:** Claude Code (Anthropic) was used as a development assistant, as described in the README.
+- **AI development tools:** Claude Code (Anthropic) was used as a development assistant to help write, refactor and debug code and documentation. The team wired and tested the hardware, ran the system and reviewed all submitted code. See "AI tool usage" in the [README](../README.md).
+- **Course material:** the [ECE 413/513 project template](https://github.com/prismlabarizona/ECE_415-513_Project_Template) and the Nordic [Bluetooth LE Fundamentals](https://academy.nordicsemi.com/courses/bluetooth-low-energy-fundamentals/) course.

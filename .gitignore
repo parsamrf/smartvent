@@ -25,5 +25,11 @@ Thumbs.db
 *.pdf
 !docs/REPORT.pdf
 
-# Local planning notes
+# Local planning notes, raw video files (published as a GitHub release instead) and submission archives
 VIDEO_PLAN.md
+plan.md
+*.mp4
+*.7z
+*.zip
+ECE 513 Backend Video/
+submission/

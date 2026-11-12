@@ -702,6 +702,7 @@ dialog .actions { display: flex; gap: 10px; justify-content: flex-end; margin-to
 .person .p-head { display: flex; gap: 14px; align-items: flex-start; margin-bottom: 12px; }
 .avatar { flex: none; width: 56px; height: 56px; border-radius: 17px; background: var(--grad); color: var(--accent-ink); display: grid; place-items: center; font-weight: 800; font-size: 1.12rem; letter-spacing: 0.02em; box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--accent) 80%, transparent); font-style: normal; }
 .avatar.alt { background: linear-gradient(135deg, var(--blue) 0%, var(--backfill) 100%); color: #fff; box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--blue) 80%, transparent); }
+.avatar.third { background: linear-gradient(135deg, var(--warn) 0%, var(--error) 100%); color: #fff; box-shadow: 0 8px 18px -8px color-mix(in srgb, var(--warn) 80%, transparent); }
 .avatar.xs { width: 22px; height: 22px; border-radius: 7px; font-size: 0.6rem; box-shadow: none; }
 .person h3 { margin: 2px 0 0; font-size: 1.15rem; }
 .p-alias { display: block; font-size: 0.78rem; color: var(--faint); }
@@ -724,7 +725,7 @@ dialog .actions { display: flex; gap: 10px; justify-content: flex-end; margin-to
 .own-head { display: flex; justify-content: space-between; gap: 12px 20px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 14px; }
 .own-head h3 { margin: 0 0 4px; font-size: 1.05rem; }
 .own-head p { margin: 0; max-width: 560px; }
-.own-key { display: flex; gap: 14px; font-size: 0.82rem; color: var(--muted); font-weight: 600; }
+.own-key { display: flex; flex-wrap: wrap; gap: 8px 14px; font-size: 0.82rem; color: var(--muted); font-weight: 600; }
 .own-key span { display: inline-flex; align-items: center; gap: 7px; }
 .own-grid { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 10px; }
 .own-grid li { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto auto; column-gap: 10px; row-gap: 6px; align-items: center; padding: 11px 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); }
@@ -734,6 +735,7 @@ dialog .actions { display: flex; gap: 10px; justify-content: flex-end; margin-to
 .own-bar { grid-column: 1 / -1; display: flex; gap: 3px; height: 6px; }
 .own-bar i { flex: 1; border-radius: 3px; background: var(--grad); transform-origin: right; transition: transform 0.9s var(--ease) 0.2s; }
 .own-bar i + i { background: linear-gradient(135deg, var(--blue), var(--backfill)); transform-origin: left; }
+.own-bar i:nth-child(3) { background: linear-gradient(135deg, var(--warn), var(--error)); }
 .js-reveal .ownership:not(.in) .own-bar i { transform: scaleX(0); }
 .own-who { grid-column: 1 / -1; font-size: 0.74rem; color: var(--muted); font-weight: 650; }
 
