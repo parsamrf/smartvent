@@ -1,4 +1,4 @@
-﻿# SmartVent: Make It Smart (ECE 513, Fall 2026)
+# SmartVent: Make It Smart (ECE 513, Fall 2026)
 
 SmartVent is a smart-ventilation system. Two **nRF52840** sensor nodes each measure temperature and humidity (Sensirion SHT31) and switch a fan output on when a reading goes over its threshold. The nodes send their data over **Bluetooth LE** to an **ESP32-S3** gateway. The gateway relays it to **AWS IoT Core** with MQTT over TLS. A responsive web app served over HTTPS shows each node and lets a logged-in user change modes, override the fans and edit thresholds. Readings travel up and commands travel down the same path.
 
@@ -166,11 +166,11 @@ Our own test log is in [docs/evidence/offline-recovery-gateway.log](docs/evidenc
 |---|---|
 | Parsa Mirfasihi | [website](https://parsamirfasihi.com), [GitHub](https://github.com/parsamrf), [LinkedIn](https://www.linkedin.com/in/parsa-mirfasihi/) |
 | Afsah Khan | [LinkedIn](https://www.linkedin.com/in/afsah-sharaf-khan-029384311/) |
-| Sarower Afjal | [LinkedIn](https://www.linkedin.com/in/sarower/) |
+| Afjal Saower | [LinkedIn](https://www.linkedin.com/in/sarower/) |
 
 All three of us worked on every part of the project. The share of each part is the same:
 
-| Component | Parsa | Afsah | Sarower |
+| Component | Parsa | Afsah | Afjal |
 |---|---|---|---|
 | Hardware | 35% | 35% | 30% |
 | Firmware (nodes and gateway) | 35% | 35% | 30% |

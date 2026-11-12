@@ -1,7 +1,7 @@
 # SmartVent: project documentation and user manual
 
 ECE 413/513 "Make It Smart", Fall 2026, University of Arizona.
-Team: Parsa Mirfasihi, Afsah Khan and Sarower Afjal. Website: https://3-17-254-71.sslip.io. Source: https://github.com/parsamrf/smartvent
+Team: Parsa Mirfasihi, Afsah Khan and Afjal Saower. Website: https://3-17-254-71.sslip.io. Source: https://github.com/parsamrf/smartvent
 
 This document is the user manual and the project report. It covers the ECE 513 requirements (HTTPS and offline data recovery) and the AI Device Assistant extra credit.
 
@@ -173,7 +173,7 @@ The hardware: two nodes (nice!nano with SHT31 and three LEDs each) on one breadb
 
 ## 8. Team contributions
 
-| Component | Parsa Mirfasihi | Afsah Khan | Sarower Afjal | Total |
+| Component | Parsa Mirfasihi | Afsah Khan | Afjal Saower | Total |
 |---|---|---|---|---|
 | Hardware | 35 % | 35 % | 30 % | 100 % |
 | Firmware (nodes and gateway) | 35 % | 35 % | 30 % | 100 % |
@@ -182,7 +182,7 @@ The hardware: two nodes (nice!nano with SHT31 and three LEDs each) on one breadb
 | Documentation | 35 % | 35 % | 30 % | 100 % |
 | Demonstrations | 35 % | 35 % | 30 % | 100 % |
 
-All three members worked on every part of the system, so each component has the same split. Links: [Parsa Mirfasihi](https://www.linkedin.com/in/parsa-mirfasihi/), [Afsah Khan](https://www.linkedin.com/in/afsah-sharaf-khan-029384311/), [Sarower Afjal](https://www.linkedin.com/in/sarower/).
+All three members worked on every part of the system, so each component has the same split. Links: [Parsa Mirfasihi](https://www.linkedin.com/in/parsa-mirfasihi/), [Afsah Khan](https://www.linkedin.com/in/afsah-sharaf-khan-029384311/), [Afjal Saower](https://www.linkedin.com/in/sarower/).
 
 ## 9. References
 - **Platforms and SDKs:** [nRF Connect SDK and Zephyr](https://docs.nordicsemi.com/bundle/ncs-latest/page/nrf/index.html), [PlatformIO](https://platformio.org/), [Arduino-ESP32](https://github.com/espressif/arduino-esp32).
