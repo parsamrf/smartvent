@@ -131,7 +131,7 @@
         <ul>
           <li>ECE 413/513 Final Project</li>
           <li>University of Arizona · Fall 2026</li>
-          <li><a href="index.html#team">Parsa Mirfasihi, Afsah Khan &amp; Afjal Saower</a></li>
+          <li><a href="index.html#team">Parsa Mirfasihi, Afsah Khan &amp; Afjal Sarower</a></li>
           <li class="foot-secure">${UI.ICON.lock}Served over HTTPS</li>
         </ul>
       </div>

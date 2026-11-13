@@ -166,7 +166,7 @@ Our own test log is in [docs/evidence/offline-recovery-gateway.log](docs/evidenc
 |---|---|
 | Parsa Mirfasihi | [website](https://parsamirfasihi.com), [GitHub](https://github.com/parsamrf), [LinkedIn](https://www.linkedin.com/in/parsa-mirfasihi/) |
 | Afsah Khan | [LinkedIn](https://www.linkedin.com/in/afsah-sharaf-khan-029384311/) |
-| Afjal Saower | [LinkedIn](https://www.linkedin.com/in/sarower/) |
+| Afjal Sarower | [LinkedIn](https://www.linkedin.com/in/sarower/) |
 
 All three of us worked on every part of the project. The share of each part is the same:
 
