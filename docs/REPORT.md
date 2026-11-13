@@ -104,7 +104,7 @@ While Wi-Fi or MQTT is down, the gateway keeps receiving readings from both node
 | `web/js/demo-api.js` | Simulated backend for demo mode |
 
 ## 5. Results
-Both nodes were verified end to end. The full demo is recorded in two videos, listed in the [README](../README.md): part 1 (12:01) shows the website and the user experience, part 2 (7:38) walks through the implementation. Evidence recorded during testing:
+Both nodes were verified end to end. The full demo is recorded in two videos, listed in the [README](../README.md): part 1 (12:01) shows the website and the user experience, part 2 (7:38) walks through the implementation. The pitch video is listed there as well. Evidence recorded during testing:
 
 - **Both nodes reporting:** the gateway log shows `nodes=2`, and the dashboard shows Bedroom and Kitchen live. Example live readings: Bedroom 23.4 C / 48.5 %, Kitchen 23.8 C / 49.4 %.
 - **Automatic control:** warming the Kitchen sensor above 27 C (peak about 33 C) turned its fan on automatically, and the dashboard showed "Over limit" with "Fans running: 1".

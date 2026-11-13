@@ -11,10 +11,10 @@ We are claiming the ECE 513 extras (HTTPS and offline data recovery) and the AI 
 | Documentation (user manual and report) | [docs/REPORT.md](docs/REPORT.md) and [docs/REPORT.pdf](docs/REPORT.pdf) |
 | Demo video, part 1: website and user experience (12:01) | [SmartVent-Demo-Part1-Frontend.mp4](https://github.com/parsamrf/smartvent/releases/download/demo-videos/SmartVent-Demo-Part1-Frontend.mp4) |
 | Demo video, part 2: backend and implementation (7:38) | [SmartVent-Demo-Part2-Backend.mp4](https://github.com/parsamrf/smartvent/releases/download/demo-videos/SmartVent-Demo-Part2-Backend.mp4) |
-| Pitch video (about 5 min) | _Not added yet_ |
+| Pitch video (19:39) | [SmartVent-Pitch-Video.mp4](https://github.com/parsamrf/smartvent/releases/download/demo-videos/SmartVent-Pitch-Video.mp4) |
 | Test account | `demo@smartvent.test` / `Vent-yemsg851f07` (owns the two nodes, Bedroom and Kitchen) |
 
-The two demo parts together run 19 min 39 s. Both files are on the [demo-videos release page](https://github.com/parsamrf/smartvent/releases/tag/demo-videos) (they are too big for the repository itself). Download them and play them locally.
+The two demo parts together run 19 min 39 s. All three videos are on the [demo-videos release page](https://github.com/parsamrf/smartvent/releases/tag/demo-videos) (they are too big for the repository itself). Download them and play them locally.
 
 ## Architecture
 
@@ -201,4 +201,4 @@ All external libraries, services and tutorials are listed on the site's [Referen
 - [x] Code for the nodes, gateway, cloud backend and website in this repository, with no passwords, keys or device certificates (the test account above is the only credential, as the handout asks)
 - [x] README with setup steps, API docs in `docs/API.md`, and documentation in `docs/REPORT.md` / `docs/REPORT.pdf`
 - [x] Demo video (two parts, 19 min 39 s total)
-- [ ] Pitch video
+- [x] Pitch video
